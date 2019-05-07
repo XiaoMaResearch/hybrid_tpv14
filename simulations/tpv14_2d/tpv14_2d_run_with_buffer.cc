@@ -314,11 +314,13 @@ int main() {
     //double start = omp_get_wtime();
 
     // Equivalent plastic strain
+    std::vector<double> se_out(n_el);
     std::vector<double> ezz_out(n_el);
     std::vector<double> exx_out(n_el);
     std::vector<double> eyy_out(n_el);
     
-    
+    file.open("results/se.bin",ios::binary);
+    file.close();
     file.open("results/ezz.bin",ios::binary);
     file.close();
     file.open("results/exx.bin",ios::binary);
@@ -381,7 +383,11 @@ int main() {
         
         if (j%100==1)
         {
-            cal_strain_energy_density(coord_store, E, nu, ezz_out, exx_out, eyy_out, n_el, index_store, q, u_n);
+            cal_strain_energy_density(coord_store, E, nu,se_out, ezz_out, exx_out, eyy_out, n_el, index_store, q, u_n);
+            
+            file.open("results/se.bin",ios::binary | ios::app);
+            file.write((char*)(se_out.data()),se_out.size()*sizeof(double));
+            file.close();
             file.open("results/ezz.bin",ios::binary | ios::app);
             file.write((char*)(ezz_out.data()),ezz_out.size()*sizeof(double));
             file.close();

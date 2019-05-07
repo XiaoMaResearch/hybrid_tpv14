@@ -9,21 +9,21 @@
 #include "cal_strain_energy_density.hpp"
 #include "maplocal.hpp"
 #include <iostream>
-void cal_strain_energy_density(std::vector<MatrixXd> &coord ,double E, double nu,std::vector<double> &ezz_out, std::vector<double> &exx_out,std::vector<double> &eyy_out,  int n_el, MatrixXi &index_store, double q, VectorXd &u_n)
+void cal_strain_energy_density(std::vector<MatrixXd> &coord ,double E, double nu,std::vector<double>se_out,std::vector<double> &ezz_out, std::vector<double> &exx_out,std::vector<double> &eyy_out,  int n_el, MatrixXi &index_store, double q, VectorXd &u_n)
 {
     MatrixXd D=MatrixXd::Zero(3,3);
     // Plane strain
-    /*
+    
     D << 1-nu, nu , 0,
     nu,   1-nu, 0,
     0,   0 ,  (1-2*nu)/2;
     D = E/((1+nu)*(1-2*nu))*D;
-    */
+    
     // Plane stress
-    D << 1.0, nu , 0,
-    nu,   1.0, 0,
-    0,   0 ,  (1-nu)/2.0;
-    D = E/(1-nu*nu)*D;
+//    D << 1.0, nu , 0,
+//    nu,   1.0, 0,
+//    0,   0 ,  (1-nu)/2.0;
+//    D = E/(1-nu*nu)*D;
      VectorXd xi_gp=VectorXd::Zero(2,1);
     VectorXd eta_gp=VectorXd::Zero(2,1);
     VectorXd w_gp=VectorXd::Zero(2,1);
@@ -67,6 +67,8 @@ void cal_strain_energy_density(std::vector<MatrixXd> &coord ,double E, double nu
         ezz_out[k] = -nu/E*(sigma_temp(0)+sigma_temp(1));
         exx_out[k] = strain_temp(0);
         eyy_out[k] = strain_temp(1);
+        // Strain energy density output
+        se_out[k] = sigma_temp(0)*strain_temp(0) + sigma_temp(1)*strain_temp(1) + 2*sigma_temp(2)*strain_temp(2);
       //  ezz_out[i] = sigma_temp(2);
     }
 }
