@@ -1,2 +1,1 @@
-add_subdirectory(parallel_faults)
 add_subdirectory(tpv14_2d)

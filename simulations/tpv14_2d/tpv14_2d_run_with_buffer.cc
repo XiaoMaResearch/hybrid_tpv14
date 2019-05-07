@@ -19,6 +19,7 @@
 #include "cal_slip_sliprate_angle.hpp"
 #include "time_advance.hpp"
 #include "BIE_correct.hpp"
+#include "cal_strain_energy_density.hpp"
 #include <math.h>
 using namespace Eigen;
 using namespace std;
@@ -29,15 +30,15 @@ typedef Eigen::Matrix<int, -1, -1,RowMajor> MatrixXi_rm;
 double time_fem=0;
 double time_bie;
 int main() {
-    //std::string filename = "tpv14_2d_100m_100km.inp";
-    std::string filename = "tpv14_2d_50m_100km_ASDG.inp";
+    std::string filename = "tpv14_2d_100m_100km.inp";
+    //std::string filename = "tpv14_2d_50m_100km_ASDG.inp";
     std::cout<<filename<<std::endl;
    // double fault_angle  = 0/180.0*M_PI;
     int dim = 2.0;
     double x_max = 50.0e3;
     double x_min = -50.0e3;
-    double dx = 50.0;
-    double dy = 50.0;
+    double dx = 100.0;
+    double dy = 100.0;
     std::vector<int> BIE_top, BIE_bot;
     MatrixXd Node;
     MatrixXi_rm Element;
@@ -204,6 +205,8 @@ int main() {
     // Calculating the Global Mass Vector (lumped mass)
     // Element stiffness matrix,Element mass
     std::vector<MatrixXd> ke_store(n_el);
+    std::vector<MatrixXd> coord_store(n_el);
+
     MatrixXd M_el = MatrixXd::Zero(Nnel*Ndofn,Nnel*Ndofn);
     VectorXd M_el_vec = VectorXd::Zero(Nnel*Ndofn,1);
     VectorXd M_global_vec=VectorXd::Zero(n_nodes*Ndofn,1);
@@ -225,13 +228,14 @@ int main() {
         dx_min_store.push_back(dx_min);
        // std::cout<<dx_cal<<std::endl;
         
+        coord_store[i] = coord;
         cal_ke (coord,E,nu,ke_store[i]);
         cal_M(coord, density,M_el);
         M_el_vec = M_el.rowwise().sum();
         index_el = index_store.col(i);
         mapglobal(index_el,M_global_vec,M_el_vec);
-
     }
+    
     double dx_min = *std::min_element(std::begin(dx_min_store), std::end(dx_min_store));
     // Time
     double alpha = 0.4;
@@ -309,6 +313,19 @@ int main() {
     //    std::ofstream shear_x("results/shear.txt");
     //double start = omp_get_wtime();
 
+    // Equivalent plastic strain
+    std::vector<double> ezz_out(n_el);
+    std::vector<double> exx_out(n_el);
+    std::vector<double> eyy_out(n_el);
+    
+    
+    file.open("results/ezz.bin",ios::binary);
+    file.close();
+    file.open("results/exx.bin",ios::binary);
+    file.close();
+    file.open("results/eyy.bin",ios::binary);
+    file.close();
+    
     // Main time loop
     for (int j=0;j<numt;j++)
     {
@@ -359,6 +376,20 @@ int main() {
             std::string shear = "results/shear_"+std::to_string(i)+".bin";
             file.open(shear,ios::binary | ios::app);
             file.write((char*)(T_c[i].data()),T_c[i].size()*sizeof(double));
+            file.close();
+        }
+        
+        if (j%100==1)
+        {
+            cal_strain_energy_density(coord_store, E, nu, ezz_out, exx_out, eyy_out, n_el, index_store, q, u_n);
+            file.open("results/ezz.bin",ios::binary | ios::app);
+            file.write((char*)(ezz_out.data()),ezz_out.size()*sizeof(double));
+            file.close();
+            file.open("results/exx.bin",ios::binary | ios::app);
+            file.write((char*)(exx_out.data()),exx_out.size()*sizeof(double));
+            file.close();
+            file.open("results/eyy.bin",ios::binary | ios::app);
+            file.write((char*)(eyy_out.data()),eyy_out.size()*sizeof(double));
             file.close();
         }
 //        file.open("results/u_n.bin",ios::binary | ios::app);

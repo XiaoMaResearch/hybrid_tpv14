@@ -39,6 +39,8 @@ set(fem_SRC
   fem/mesh_Generated_multi_faults.cpp
   fem/mesh_Abaqus_multi_faults.cpp
   fem/cal_ke.cpp
+  fem/cal_ezz.cpp
+  fem/cal_strain_energy_density
   fem/cal_Bmat.cpp
   fem/cal_fe_global_plastic.cpp
   fem/cal_fe_int_el.cpp
