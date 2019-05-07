@@ -244,7 +244,7 @@ int main() {
     // Reyleigh Damping
     double beta =0.3;
     double q = beta*dt;
-    double time_run = 12.0;
+    double time_run = 2.0;
     int numt = time_run/dt;
     //
     std::ofstream time_output("results/time.txt");
@@ -315,13 +315,10 @@ int main() {
 
     // Equivalent plastic strain
     std::vector<double> se_out(n_el);
-    std::vector<double> ezz_out(n_el);
     std::vector<double> exx_out(n_el);
     std::vector<double> eyy_out(n_el);
     
     file.open("results/se.bin",ios::binary);
-    file.close();
-    file.open("results/ezz.bin",ios::binary);
     file.close();
     file.open("results/exx.bin",ios::binary);
     file.close();
@@ -383,13 +380,10 @@ int main() {
         
         if (j%100==1)
         {
-            cal_strain_energy_density(coord_store, E, nu,se_out, ezz_out, exx_out, eyy_out, n_el, index_store, q, u_n);
+            cal_strain_energy_density(coord_store, E, nu,se_out, exx_out, eyy_out, n_el, index_store, q, u_n);
             
             file.open("results/se.bin",ios::binary | ios::app);
             file.write((char*)(se_out.data()),se_out.size()*sizeof(double));
-            file.close();
-            file.open("results/ezz.bin",ios::binary | ios::app);
-            file.write((char*)(ezz_out.data()),ezz_out.size()*sizeof(double));
             file.close();
             file.open("results/exx.bin",ios::binary | ios::app);
             file.write((char*)(exx_out.data()),exx_out.size()*sizeof(double));
